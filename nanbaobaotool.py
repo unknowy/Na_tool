@@ -59,12 +59,33 @@ def write_excel(excel):
     print("ok")
 
 
+def read_excel_2(excel_name):
+    output_word=[]
+    book = xlrd.open_workbook(excel_name)
+    sheet_name = book.sheet_names()[0]  # 获得指定索引的sheet名字
+    sheet = book.sheet_by_name(sheet_name)
+    station_num = int(sheet.cell_value(2, 1))
+    print station_num
+    sheet_name = book.sheet_names()[1]
+    sheet = book.sheet_by_name(sheet_name)
+    print sheet_name
+    hrisk_col = int(sum(sheet.col_values(5)[2:50]))
+    mrisk_col = int(sum(sheet.col_values(6)[2:50]))
+    # del hrisk_col[0:1]
+    # del mrisk_col[0:1]
+    print hrisk_col
+    print mrisk_col
+    
+
+
 def read_excel(excel_name):
     book = xlrd.open_workbook(excel_name)
     sheet_name = book.sheet_names()[1]  # 获得指定索引的sheet名字
     sheet = book.sheet_by_name(sheet_name)
     col_data = sheet.col_values(1)
     risk_data = []
+    safe_report=[]
+    output_word=[]
     try:
         row_portal_server = col_data.index('10.232.80.20')
         portal_server_hrisk = int(sheet.cell_value(row_portal_server, 5))
@@ -125,78 +146,50 @@ def read_excel(excel_name):
         risk_data.append(deskbackup_server_mrisk)
         risk_data.append(deskbackup_server_mrisk)
 
-    return risk_data
-
+    safe_report.append(u'本月使用绿盟扫描，')
+    safe_report.append(u'门户服务器')
+    safe_report.append(str(risk_data[0]) + u'个高危漏洞（已备案），')
+    safe_report.append(str(risk_data[1]) + u'个中危漏洞（已备案），')
+    safe_report.append(u'DNS服务器')
+    safe_report.append(str(risk_data[2]) + u'个高危漏洞（已备案），')
+    safe_report.append(str(risk_data[3]) + u'个中危漏洞（已备案），')
+    safe_report.append(u'备份服务器')
+    safe_report.append(str(risk_data[4]) + u'个高危漏洞（已备案），')
+    safe_report.append(str(risk_data[5]) + u'个中危漏洞（已备案），')
+    safe_report.append(u'桌管服务器')
+    safe_report.append(str(risk_data[6]) + u'个高危漏洞（已备案），')
+    safe_report.append(str(risk_data[7]) + u'个中危漏洞（已备案），')
+    safe_report.append(u'桌管备份服务器')
+    safe_report.append(str(risk_data[8]) + u'个高危漏洞（已备案），')
+    safe_report.append(str(risk_data[9]) + u'个中危漏洞（已备案），')
+    safe_report.append(u'外网主机、服务器、终端均未发现中、高危漏洞。自建系统未发现高、中危漏洞。具体扫描结果见附件。')
+    output_word.append(safe_report[0])
+    for i in range(5):
+        if risk_data[2 * i] != 0 or risk_data[2 * i + 1] != 0:
+            output_word.append(safe_report[3 * i + 1])
+        if risk_data[2 * i] != 0:
+            output_word.append(safe_report[3 * i + 2])
+        if risk_data[2 * i + 1] != 0:
+            output_word.append(safe_report[3 * i + 3])
+    output_word.append(safe_report[16])
+    return output_word
 
 if __name__ == "__main__":
     all_zip_file = file_name('./')
     root = "./"
     target_file = []
-    output_word = []
-    safe_report = []
+    safe_report_1 = []
     document = Document()
     document.save('report.docx')
     for num in range(4):
         un_zip(all_zip_file[num], str(num))
         name_temp = (root + str(num) + '\index.xls')
         target_file.append(name_temp)
-    risk_data = read_excel(target_file[2])
-    print risk_data
-    
-
-    safe_report.append(u'本月使用绿盟扫描，')
-    safe_report.append(u'门户服务器：')
-    safe_report.append(str(risk_data[0]) + u'个高危漏洞（已备案），')
-    safe_report.append(str(risk_data[1]) + u'个中危漏洞（已备案），')
-    safe_report.append(u'DNS服务器：')
-    safe_report.append(str(risk_data[2]) + u'个高危漏洞（已备案），')
-    safe_report.append(str(risk_data[3]) + u'个中危漏洞（已备案），')
-    safe_report.append(u'备份服务器：')
-    safe_report.append(str(risk_data[4]) + u'个高危漏洞（已备案），')
-    safe_report.append(str(risk_data[5]) + u'个中危漏洞（已备案），')
-    safe_report.append(u'桌管服务器：')
-    safe_report.append(str(risk_data[6]) + u'个高危漏洞（已备案），')
-    safe_report.append(str(risk_data[7]) + u'个中危漏洞（已备案），')
-    safe_report.append(u'桌管备份服务器：')
-    safe_report.append(str(risk_data[8]) + u'个高危漏洞（已备案），')
-    safe_report.append (str(risk_data[9]) + u'个中危漏洞（已备案），')
-    safe_report.append(u'外网主机、服务器、终端均未发现中、高危漏洞。自建系统未发现高、中危漏洞。具体扫描结果见附件。')
-    
-    output_word.append(safe_report[0])
-
-    for i in range(5):
-        if  risk_data[2*i]!=0 or risk_data[2*i+1] != 0:
-            output_word.append(safe_report[3*i+1])
-        if risk_data[2*i]!=0:
-            output_word.append(safe_report[3*i+2])
-        if risk_data[2*i+1]!=0:
-            output_word.append(safe_report[3*i+3])
-    output_word.append(safe_report[16])     
+# 安全月报第一段
+    safe_report_1  = read_excel(target_file[2])
     doc(output_word)
-   
-    # if risk_data[0] == 0 and risk_data[1] == 0:
-    #     pass
-    # else:
-    #     output_word.append(safe_report_2)
-    # if risk_data[2] == 0 and risk_data[3] == 0:
-    #     pass
-    # else:
-    #     output_word.append(safe_report_3)
-    # if risk_data[4] == 0 and risk_data[5] == 0:
-    #     pass
-    # else:
-    #     output_word.append(safe_report_4)
-    # if risk_data[6] == 0 and risk_data[7] == 0:
-    #     pass
-    # else:
-    #     output_word.append(safe_report_5)
-    # if risk_data[8] == 0 and risk_data[9] == 0:
-    #     pass
-    # else:
-    #     output_word.append(safe_report_6)
-
-
-
+# 安全月报第二段
+    read_excel_2(target_file[1])
 
     print("ok")
  #   read_excel(index.xls)
