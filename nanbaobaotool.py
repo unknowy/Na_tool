@@ -59,33 +59,66 @@ def write_excel(excel):
     print("ok")
 
 
-def read_excel_2(excel_name):
-    output_word=[]
+def read_excel_22(excel_name):
+    output_word = []
+    safe_report = []
     book = xlrd.open_workbook(excel_name)
     sheet_name = book.sheet_names()[0]  # 获得指定索引的sheet名字
     sheet = book.sheet_by_name(sheet_name)
     station_num = int(sheet.cell_value(2, 1))
-    print station_num
     sheet_name = book.sheet_names()[1]
     sheet = book.sheet_by_name(sheet_name)
-    print sheet_name
+    hrisk_col = int(sum(sheet.col_values(5)[2:50]))
+    mrisk_col = int(sum(sheet.col_values(6)[2:50]))
+    safe_report.append(u'本月共扫描外网桌面终端' + str(station_num) + u'台，')
+    safe_report.append(u'发现' + str(hrisk_col) + u'个高危漏洞、' +
+                       str(mrisk_col) + u'个中危漏洞，已整改高危漏洞3个，中危漏洞10个，其余已列入4月整改计划。')
+    safe_report.append(u'发现' + str(mrisk_col) + u'个中危漏洞。具体扫描结果见附件。')
+    safe_report.append(u'发现' + str(hrisk_col) + u'个高危漏洞。具体扫描结果见附件。')
+    safe_report.append(u'无高、中危漏洞。具体扫描结果见附件。')
+    if hrisk_col == 0 and mrisk_col == 0:
+        output_word.append(safe_report[0])
+        output_word.append(safe_report[4])
+    if hrisk_col == 1 and mrisk_col == 1:
+        output_word.append(safe_report[0])
+        output_word.append(safe_report[1])
+    if hrisk_col == 1 and mrisk_col == 0:
+        output_word.append(safe_report[0])
+        output_word.append(safe_report[3])
+    if hrisk_col == 0 and mrisk_col == 1:
+        output_word.append(safe_report[0])
+        output_word.append(safe_report[2])
+
+    return output_word
+
+
+def read_excel_21(excel_name):
+
+    safe_report = []
+    book = xlrd.open_workbook(excel_name)
+    sheet_name = book.sheet_names()[0]  # 获得指定索引的sheet名字
+    sheet = book.sheet_by_name(sheet_name)
+    station_num = int(sheet.cell_value(2, 1))
+    sheet_name = book.sheet_names()[1]
+    sheet = book.sheet_by_name(sheet_name)
     hrisk_col = int(sum(sheet.col_values(5)[2:50]))
     mrisk_col = int(sum(sheet.col_values(6)[2:50]))
     # del hrisk_col[0:1]
     # del mrisk_col[0:1]
-    print hrisk_col
-    print mrisk_col
-    
+    safe_report.append(u'本月共扫描内网终端' + str(station_num))
+    safe_report.append(u'发现' + str(hrisk_col) + u'个高危、' +
+                       str(mrisk_col) + u'个中危漏洞，已整改高危漏洞3个，中危漏洞10个，其余已列入4月整改计划。')
+    return safe_report
 
 
-def read_excel(excel_name):
+def read_excel_1(excel_name):
     book = xlrd.open_workbook(excel_name)
     sheet_name = book.sheet_names()[1]  # 获得指定索引的sheet名字
     sheet = book.sheet_by_name(sheet_name)
     col_data = sheet.col_values(1)
     risk_data = []
-    safe_report=[]
-    output_word=[]
+    safe_report = []
+    output_word = []
     try:
         row_portal_server = col_data.index('10.232.80.20')
         portal_server_hrisk = int(sheet.cell_value(row_portal_server, 5))
@@ -174,11 +207,11 @@ def read_excel(excel_name):
     output_word.append(safe_report[16])
     return output_word
 
+
 if __name__ == "__main__":
     all_zip_file = file_name('./')
     root = "./"
     target_file = []
-    safe_report_1 = []
     document = Document()
     document.save('report.docx')
     for num in range(4):
@@ -186,10 +219,14 @@ if __name__ == "__main__":
         name_temp = (root + str(num) + '\index.xls')
         target_file.append(name_temp)
 # 安全月报第一段
-    safe_report_1  = read_excel(target_file[2])
-    doc(output_word)
+    safe_report_1 = read_excel_1(target_file[2])
+    doc(safe_report_1)
 # 安全月报第二段
-    read_excel_2(target_file[1])
+    safe_report_21 = read_excel_21(target_file[1])
+    safe_report_22 = read_excel_22(target_file[3])
+    safe_report_2 = safe_report_21 + safe_report_22
+    doc(safe_report_2)
+    # print safe_report_2
 
     print("ok")
  #   read_excel(index.xls)
