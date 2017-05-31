@@ -2,12 +2,40 @@
 import os
 import xlrd
 import zipfile
+import time
 from xlrd import open_workbook
 from xlutils.copy import copy
 from docx import Document
 from docx.shared import Pt
 from docx.shared import Inches
 from docx.oxml.ns import qn
+
+
+def doc_table(table_list):
+    document = Document('report.docx')
+    table = document.add_table(rows=5, cols=4)
+    hdr_cells = table.rows[0].cells
+    hdr_cells[0].text = u'扫描对象'
+    hdr_cells[1].text = u'扫描数量'
+    hdr_cells[2].text = u'漏洞总数'
+    hdr_cells[3].text = u'高危漏洞'
+    hdr_cells[4].text = u'中危漏洞'
+    hd_cells = table.columns[0].cells
+
+    hd_cells[1].text = u'服务器'
+    hd_cells[2].text = u'网络设备'
+    hd_cells[3].text = u'终端设备'
+    hd_cells[4].text = u'服务器'
+    hd_cells[5].text = u'网络设备'
+    hd_cells[6].text = u'终端设备'
+
+    for i in xrange(5):
+        row_cells = table.rows[i + 1].cells
+        row_cells[1].text = str(word[4*i])
+        row_cells[2].text = str(word[4*i + 1])
+        row_cells[3].text = str(word[4*i + 2])
+        row_cells[4].text = str(word[4*i + 3])
+    document.save(u'report.docx')
 
 
 def doc(word):
@@ -17,6 +45,32 @@ def doc(word):
     run.font.name = u'宋体'
     r = run._element
     r.rPr.rFonts.set(qn('w:eastAsia'), u'宋体')
+    document.save(u'report.docx')
+
+
+def doc_table(table_list):
+    document = Document('report.docx')
+    table = document.add_table(rows=7, cols=5)
+    hdr_cells = table.rows[0].cells
+    hdr_cells[0].text = u'扫描对象'
+    hdr_cells[1].text = u'扫描数量'
+    hdr_cells[2].text = u'漏洞总数'
+    hdr_cells[3].text = u'高危漏洞'
+    hdr_cells[4].text = u'中危漏洞'
+    hd_cells = table.columns[0].cells
+    hd_cells[1].text = u'服务器'
+    hd_cells[2].text = u'网络设备'
+    hd_cells[3].text = u'终端设备'
+    hd_cells[4].text = u'服务器'
+    hd_cells[5].text = u'网络设备'
+    hd_cells[6].text = u'终端设备'
+
+    for i in xrange(6):
+        row_cells = table.rows[i + 1].cells
+        row_cells[1].text = str(table_list[4 * i])
+        row_cells[2].text = str(table_list[4 * i + 1])
+        row_cells[3].text = str(table_list[4 * i + 2])
+        row_cells[4].text = str(table_list[4 * i + 3])
     document.save(u'report.docx')
 
 
@@ -57,6 +111,24 @@ def write_excel(excel):
 
     wb.save(excel)
     print("ok")
+
+
+def read_excel_3(excel_name):
+    output_word = []
+    book = xlrd.open_workbook(excel_name)
+    sheet_name = book.sheet_names()[0]  # 获得指定索引的sheet名字
+    sheet = book.sheet_by_name(sheet_name)
+    station_num = int((sheet.cell_value(2, 1)))
+    sheet_name = book.sheet_names()[1]
+    sheet = book.sheet_by_name(sheet_name)
+    hrisk_sum = int(sum(sheet.col_values(5)[2:30]))
+    mrisk_sum = int(sum(sheet.col_values(6)[2:30]))
+    risk_sum = hrisk_sum + mrisk_sum
+    output_word.append(station_num)
+    output_word.append(risk_sum)
+    output_word.append(hrisk_sum)
+    output_word.append(mrisk_sum)
+    return output_word
 
 
 def read_excel_22(excel_name):
@@ -214,19 +286,38 @@ if __name__ == "__main__":
     target_file = []
     document = Document()
     document.save('report.docx')
-    for num in range(4):
+    for num in range(6):
         un_zip(all_zip_file[num], str(num))
         name_temp = (root + str(num) + '\index.xls')
         target_file.append(name_temp)
 # 安全月报第一段
+    print ('安全月报第一部分生成中......')
+    start_report1 = time.clock()
     safe_report_1 = read_excel_1(target_file[2])
     doc(safe_report_1)
+    end_report1 = time.clock()
+    print str(end_report1-start_report1)
 # 安全月报第二段
+    print ('安全月报第二部分生成中......')
+    start_report2 = time.clock()
     safe_report_21 = read_excel_21(target_file[1])
     safe_report_22 = read_excel_22(target_file[3])
     safe_report_2 = safe_report_21 + safe_report_22
     doc(safe_report_2)
-    # print safe_report_2
+    end_report2 = time.clock()
+    print str(end_report2-start_report2)
 
-    print("ok")
- #   read_excel(index.xls)
+# 安全月报第三段
+    print ('安全月报第三部分生成中......')
+    start_report3 = time.clock()
+    safe_report_3 = read_excel_3(target_file[2])
+    safe_report_3 = safe_report_3 + read_excel_3(target_file[0])
+    safe_report_3 = safe_report_3 + read_excel_3(target_file[1])
+    safe_report_3 = safe_report_3 + read_excel_3(target_file[5])
+    safe_report_3 = safe_report_3 + read_excel_3(target_file[3])
+    safe_report_3 = safe_report_3 + read_excel_3(target_file[4])
+    doc_table(safe_report_3)
+    end_report3 = time.clock()
+    print str(end_report3-start_report3)
+    print("安全月报生成完毕")
+
