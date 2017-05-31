@@ -96,21 +96,7 @@ def un_zip(file_name, name):
     zip_file.close()
 
 
-def write_excel(excel):
 
-    rb = open_workbook(excel)
-
-    # 通过sheet_by_index()获取的sheet没有write()方法
-    rs = rb.sheet_by_index(0)
-
-    wb = copy(rb)
-
-    # 通过get_sheet()获取的sheet有write()方法
-    ws = wb.get_sheet(0)
-    ws.write(1, 1, 'changed!')
-
-    wb.save(excel)
-    print("ok")
 
 
 def read_excel_4(list):
