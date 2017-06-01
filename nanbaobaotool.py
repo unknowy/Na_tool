@@ -3,6 +3,8 @@ import os
 import xlrd
 import zipfile
 import time
+import sys
+import shutil
 from xlrd import open_workbook
 from xlutils.copy import copy
 from docx import Document
@@ -12,7 +14,7 @@ from docx.oxml.ns import qn
 
 
 def doc(word):
-    document = Document('report.docx')
+    document = Document(u'report.docx')
     paragraph = document.add_paragraph('\n')
     run = paragraph.add_run(word)
     run.font.name = u'宋体'
@@ -137,7 +139,7 @@ def file_name(file_dir):
                 file_name = os.path.join(root, file)
                 L.append(file_name)
     if(file_num != 6):
-        print('压缩文件错误：压缩文件数量为' + str(file_num) + ',请检查压缩文件！')
+        print('zip file error：zip file num ' + str(file_num) + ',check zip file！')
         os._exit(0)
     return L
 
@@ -153,7 +155,7 @@ def un_zip(file_name, name):
         zip_file.extract('index.xls', name)
         zip_file.close()
     except KeyError:
-        print('压缩文件中没有index.xls文件')
+        print('no such file index.xls ')
         os._exit(0)
 
 
@@ -308,8 +310,7 @@ def read_excel_1(excel_name):
         risk_data.append(deskbackup_server_mrisk)
         risk_data.append(deskbackup_server_mrisk)
     if ((risk_data[0] or risk_data[1] or risk_data[2] or risk_data[3] or risk_data[4] or risk_data[5] or risk_data[6] or risk_data[7] or risk_data[8] or risk_data[9]) == 0):
-        print ('服务器无漏洞！不太可能出现，数据源错误')
-        print('检查文件顺序是否是：网络设备、终端、主机')
+        print ('risk num is zero!!!!')
         os._exit(0)
     safe_report.append(u'本月使用绿盟扫描，')
     safe_report.append(u'门户服务器')
@@ -338,32 +339,35 @@ def read_excel_1(excel_name):
             output_word.append(safe_report[3 * i + 3])
     output_word.append(safe_report[16])
     return output_word
+def rm_dir():
+    for num in range(6):
+        shutil.rmtree(str(num))
+    
 
 
 if __name__ == "__main__":
     all_zip_file = file_name('./')
     root = "./"
     target_file = []
-    document = Document()
-    document.save('report.docx')
-
+    document = Document(u'G:\code\Na_tool')
+    document.save(u'report.docx')
     for num in range(6):
         un_zip(all_zip_file[num], str(num))
         name_temp = (root + str(num) + '\index.xls')
         target_file.append(name_temp)
 
 # 安全月报第一段
-    print ('安全月报第一部分生成中......')
+    print ('safe report part 1 making ......')
     start_report1 = time.clock()
     safe_report_1 = read_excel_1(target_file[2])
     try:
         doc(safe_report_1)
     except IndexError:
-        print('安全月报第一段数据源错误')
+        print('safe report part 1 data error')
     end_report1 = time.clock()
-    print (u'耗时' + str(int((end_report1 - start_report1) * 1000)) + u'毫秒')
+    print ( str(int((end_report1 - start_report1) * 1000)) + u'ms')
 # 安全月报第二段
-    print ('安全月报第二部分生成中......')
+    print ('safe report part 2 making ......')
     start_report2 = time.clock()
     safe_report_21 = read_excel_21(target_file[1])
     safe_report_22 = read_excel_22(target_file[3])
@@ -371,12 +375,12 @@ if __name__ == "__main__":
     try:
         doc(safe_report_2)
     except IndexError:
-        print('安全月报第二段数据源错误')
+        print('safe report part 2 data error')
     end_report2 = time.clock()
-    print (u'耗时' + str(int((end_report2 - start_report2) * 1000)) + u'毫秒')
+    print (str(int((end_report2 - start_report2) * 1000)) + u'ms')
 
 # 安全月报第三段
-    print ('安全月报第三部分生成中......')
+    print ('safe report part 3 making ......')
     start_report3 = time.clock()
     safe_report_3 = read_excel_3(target_file[2])
     safe_report_3 = safe_report_3 + read_excel_3(target_file[0])
@@ -387,39 +391,41 @@ if __name__ == "__main__":
     try:
         doc_table(safe_report_3)
     except IndexError:
-        print('安全月报第三段数据源错误')
+        print('safe report part 3 data error')
     end_report3 = time.clock()
-    print (u'耗时' + str(int((end_report3 - start_report3) * 1000)) + u'毫秒')
-    print("安全月报生成完毕")
+    print ( str(int((end_report3 - start_report3) * 1000)) + u'ms')
+    print("safe report finished")
 
 # 督查月报
-    print ('督查月报生成中......')
+    print ('check report making......')
     start_report4 = time.clock()
     safe_report_4 = read_excel_4(safe_report_3)
     try:
         doc(safe_report_4)
     except IndexError:
-        print('督查月报数据源错误')
+        print('check report  data error')
     end_report4 = time.clock()
-    print (u'耗时' + str(int((end_report4 - start_report4) * 1000)) + u'毫秒')
-    print ('督查月报生成完毕')
+    print ( str(int((end_report4 - start_report4) * 1000)) + u'ms')
+    print ('check report  finished')
 # 终端统计表
-    print ('终端统计表生成中......')
+    print ('station data making......')
     start_report5 = time.clock()
     try:
         doc_table_risk_data1(target_file[1])
     except IndexError:
-        print('终端统计表数据源错误')
+        print('station date error')
     end_report5 = time.clock()
-    print (u'耗时' + str(int((end_report5 - start_report5) * 1000)) + u'毫秒')
-    print ('终端统计表生成完毕')
+    print ( str(int((end_report5 - start_report5) * 1000)) + u'ms')
+    print ('station data finished')
 # 漏洞明细表
-    print ('漏洞明细表生成中......')
+    print ('risk data making......')
     start_report6 = time.clock()
     try:
         doc_table_risk_data2(target_file[1])
     except IndexError:
-        print('漏洞明细表数据源错误')
+        print('risk data error ')
     end_report6 = time.clock()
-    print (u'耗时' + str(int((end_report6 - start_report6) * 1000)) + u'毫秒')
-    print ('漏洞明细表生成完毕')
+    print ( str(int((end_report6 - start_report6) * 1000)) + u'ms')
+    print ('risk data finished')
+    rm_dir()
+    
