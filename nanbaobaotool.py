@@ -1,5 +1,6 @@
 #-*- coding:utf-8 -*-
 import os
+import msvcrt
 import xlrd
 import zipfile
 import time
@@ -14,7 +15,11 @@ from docx.oxml.ns import qn
 
 
 def doc(word):
-    document = Document(u'report.docx')
+    try:
+        document = Document(u'report.docx')
+    except IOError:
+        print ('report.docx  can  not finded')
+        os._exit(0)
     paragraph = document.add_paragraph('\n')
     run = paragraph.add_run(word)
     run.font.name = u'宋体'
@@ -47,15 +52,31 @@ def doc_table_risk_data1(excel_name):
     hdr_cells[7].text = u'中危漏洞'
     hdr_cells[8].text = u'合计'
     hdr_cells[9].text = u'主机风险值'
-
+    try:
+        book_data = xlrd.open_workbook('data.xls')
+    except IOError:
+        print('data.xls  miss')
+        os._exit(0)
+    sheet_name2 = book_data.sheet_names()[0]  # 获得指定索引的sheet名字
+    sheet2 = book_data.sheet_by_name(sheet_name2)
+    col_data = sheet2.col_values(6)
     for i in xrange(1, row):
-
         date = sheet.row_values(i + 1)
         if((date[5] + date[6]) == 0):
             break
+        try:
+            row_risk = col_data.index(date[1])
+        except ValueError:
+            print (date[1]+' not finded')
+            row_risk = 0
+    
+    
+
         row_cells = table.rows[i].cells
         row_cells[0].text = str(i)
         row_cells[1].text = str(date[1])
+        row_cells[2].text = sheet2.cell_value(row_risk, 3)
+        row_cells[3].text = sheet2.cell_value(row_risk, 4) 
         row_cells[4].text = date[3]
         row_cells[5].text = date[4]
         row_cells[6].text = str(date[5])
@@ -349,8 +370,7 @@ if __name__ == "__main__":
     all_zip_file = file_name('./')
     root = "./"
     target_file = []
-    document = Document(u'G:\code\Na_tool')
-    document.save(u'report.docx')
+
     for num in range(6):
         un_zip(all_zip_file[num], str(num))
         name_temp = (root + str(num) + '\index.xls')
@@ -427,5 +447,8 @@ if __name__ == "__main__":
     end_report6 = time.clock()
     print ( str(int((end_report6 - start_report6) * 1000)) + u'ms')
     print ('risk data finished')
+    print ('all finished')
     rm_dir()
+   
+    print ord(msvcrt.getch())
     
